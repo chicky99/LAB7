@@ -1,0 +1,49 @@
+#include <Wire.h>
+#include <LiquidCrystal.h>
+
+const int potPin = A7;   // Pin del potenciómetro
+const int buttonIncPin = PUSH1;  // Pin del botón de incremento (ajusta al pin correcto)
+const int buttonDecPin = PUSH2;  // Pin del botón de decremento (ajusta al pin correcto)
+
+int contador = 0;
+bool incButtonPressed = false;
+bool decButtonPressed = false;
+
+void setup() {
+  Serial2.begin(115200);  // Iniciar la comunicación serial
+  pinMode(buttonIncPin, INPUT_PULLUP);  // Configurar el botón de incremento como entrada con resistencia pull-up
+  pinMode(buttonDecPin, INPUT_PULLUP);  // Configurar el botón de decremento como entrada con resistencia pull-up
+}
+
+void loop() {
+  // Leer el valor analógico del potenciómetro
+  int sensorValue = analogRead(potPin);
+  float voltage = sensorValue * (3.3 / 4095.0);  // Convertir el valor a voltaje
+
+  // Verificar si se presionó el botón de incremento
+  if (digitalRead(buttonIncPin) == LOW && !incButtonPressed && contador < 255) {
+    contador++;
+    incButtonPressed = true;
+    delay(200);  // Esperar un breve tiempo para evitar múltiples incrementos en un solo botón presionado
+  } else if (digitalRead(buttonIncPin) == HIGH) {
+    incButtonPressed = false;
+  }
+
+  // Verificar si se presionó el botón de decremento
+  if (digitalRead(buttonDecPin) == LOW && !decButtonPressed && contador > 0) {
+    contador--;
+    decButtonPressed = true;
+    delay(200);  // Esperar un breve tiempo para evitar múltiples decrementos en un solo botón presionado
+  } else if (digitalRead(buttonDecPin) == HIGH) {
+    decButtonPressed = false;
+  }
+
+  // Imprimir el valor del contador y el voltaje por la comunicación USART
+  Serial2.print("CPU ");
+  Serial2.println(contador);
+  Serial2.print("POTC ");
+  Serial2.print(voltage, 2);  // Imprimir el voltaje con 2 decimales
+  Serial2.println(" V");
+
+  delay(1000);  // Esperar un segundo antes de la siguiente lectura
+}
